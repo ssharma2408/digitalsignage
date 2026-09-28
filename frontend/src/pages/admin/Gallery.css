@@ -1,0 +1,377 @@
+.gallery-admin {
+    width: 100%;
+    padding: 25px;
+    box-sizing: border-box;
+    max-height: calc(100vh - 550px);
+    min-height: 650px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.gallery-admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.gallery-admin-header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+.gallery-admin-header p {
+    margin: 0;
+    color: #666;
+}
+
+/* FORM */
+
+.gallery-form {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.gallery-form-fields {
+    display: grid;
+    grid-template-columns:
+        minmax(200px, 2fr)
+        minmax(200px, 2fr)
+        minmax(150px, 1fr)
+        minmax(120px, 1fr);
+
+    gap: 18px;
+    margin-bottom: 30px;
+}
+
+.gallery-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.gallery-field label,
+.gallery-caption-field label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.gallery-field input,
+.gallery-field select,
+.gallery-caption-field input {
+    width: 100%;
+    height: 42px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.gallery-field input:focus,
+.gallery-field select:focus,
+.gallery-caption-field input:focus {
+    outline: none;
+    border-color: #555;
+}
+
+/* 3 X 3 EDITOR */
+
+.gallery-editor-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.gallery-editor-card {
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background: #fafafa;
+}
+
+.gallery-slot-number {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #222;
+    color: #fff;
+
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 600;
+
+    z-index: 2;
+}
+
+/* UPLOAD */
+
+.gallery-upload-box {
+    height: 220px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px dashed #bbb;
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    color: #666;
+    background: #fff;
+}
+
+.gallery-upload-box:hover {
+    border-color: #777;
+    background: #f5f5f5;
+}
+
+.gallery-upload-box input {
+    display: none;
+}
+
+.gallery-upload-icon {
+    width: 45px;
+    height: 45px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #eee;
+
+    font-size: 28px;
+
+    margin-bottom: 10px;
+}
+
+/* IMAGE */
+
+.gallery-image-preview {
+    position: relative;
+    height: 220px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #eee;
+}
+
+.gallery-image-preview img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.gallery-remove-image {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+
+    border: 0;
+    border-radius: 5px;
+
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+
+    padding: 7px 12px;
+
+    cursor: pointer;
+}
+
+.gallery-remove-image:hover {
+    background: #000;
+}
+
+/* CAPTION */
+
+.gallery-caption-field {
+    margin-top: 12px;
+}
+
+.gallery-caption-field input {
+    margin-top: 6px;
+}
+
+/* ACTIONS */
+
+.gallery-form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+/* BUTTONS */
+
+.gallery-btn {
+    border: 0;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.gallery-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.gallery-btn.primary {
+    background: #222;
+    color: #fff;
+}
+
+.gallery-btn.primary:hover {
+    background: #000;
+}
+
+.gallery-btn.secondary {
+    background: #eee;
+    color: #333;
+}
+
+.gallery-btn.secondary:hover {
+    background: #ddd;
+}
+
+.gallery-btn.edit {
+    background: #eee;
+    color: #222;
+}
+
+.gallery-btn.delete {
+    background: #f3dede;
+    color: #a00;
+}
+
+/* EXISTING GALLERIES */
+
+.gallery-list-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 25px;
+}
+
+.gallery-list-header {
+    margin-bottom: 20px;
+}
+
+.gallery-list-header h2 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.gallery-table-wrapper {
+    width: 100%;
+    max-height: calc(100vh - 550px);
+    min-height: 150px;
+    overflow-x: auto;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.gallery-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.gallery-table th,
+.gallery-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.gallery-table th {
+    background: #f7f7f7;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.gallery-table td {
+    font-size: 14px;
+}
+
+.gallery-status {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.gallery-status.published {
+    background: #e4f5e8;
+    color: #18752d;
+}
+
+.gallery-status.draft {
+    background: #eee;
+    color: #666;
+}
+
+.gallery-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.gallery-empty {
+    padding: 30px;
+    text-align: center;
+    color: #777;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+
+    .gallery-form-fields {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gallery-editor-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 650px) {
+
+    .gallery-admin {
+        padding: 15px;
+    }
+
+    .gallery-form-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-editor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .gallery-admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+}

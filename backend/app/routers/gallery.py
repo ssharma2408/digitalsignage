@@ -1,0 +1,177 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.models import GalleryPage, GalleryItem
+from app.schemas import (
+    GalleryPageCreate,
+    GalleryPageUpdate,
+    GalleryPageResponse
+)
+
+router = APIRouter(
+    prefix="/admin/gallery",
+    tags=["Admin Gallery"]
+)
+
+@router.get("", response_model=list[GalleryPageResponse])
+def get_galleries(
+    db: Session = Depends(get_db)
+):
+    return (
+        db.query(GalleryPage)
+        .order_by(
+            GalleryPage.page_order.asc(),
+            GalleryPage.title.asc()
+        )
+        .all()
+    )
+
+@router.get("/{gallery_id}", response_model=GalleryPageResponse)
+def get_gallery(
+    gallery_id: int,
+    db: Session = Depends(get_db)
+):
+    gallery = (
+        db.query(GalleryPage)
+        .filter(GalleryPage.id == gallery_id)
+        .first()
+    )
+
+    if not gallery:
+        raise HTTPException(
+            status_code=404,
+            detail="Gallery not found"
+        )
+
+    return gallery
+
+@router.post(
+    "",
+    response_model=GalleryPageResponse
+)
+def create_gallery(
+    data: GalleryPageCreate,
+    db: Session = Depends(get_db)
+):
+    if len(data.items) != 9:
+        raise HTTPException(
+            status_code=400,
+            detail="Gallery must contain exactly 9 items"
+        )
+
+    existing = (
+        db.query(GalleryPage)
+        .filter(GalleryPage.slug == data.slug)
+        .first()
+    )
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="Gallery slug already exists"
+        )
+
+    gallery = GalleryPage(
+        title=data.title,
+        slug=data.slug,
+        status=data.status,
+        page_order=data.page_order
+    )
+
+    db.add(gallery)
+    db.flush()
+
+    for item in data.items:
+        gallery_item = GalleryItem(
+            gallery_page_id=gallery.id,
+            image_url=item.image_url,
+            caption=item.caption,
+            item_order=item.item_order
+        )
+
+        db.add(gallery_item)
+
+    db.commit()
+    db.refresh(gallery)
+
+    return gallery
+
+@router.put(
+    "/{gallery_id}",
+    response_model=GalleryPageResponse
+)
+def update_gallery(
+    gallery_id: int,
+    data: GalleryPageUpdate,
+    db: Session = Depends(get_db)
+):
+    gallery = (
+        db.query(GalleryPage)
+        .filter(GalleryPage.id == gallery_id)
+        .first()
+    )
+
+    if not gallery:
+        raise HTTPException(
+            status_code=404,
+            detail="Gallery not found"
+        )
+
+    if len(data.items) != 9:
+        raise HTTPException(
+            status_code=400,
+            detail="Gallery must contain exactly 9 items"
+        )
+
+    gallery.title = data.title
+    gallery.slug = data.slug
+    gallery.status = data.status
+    gallery.page_order = data.page_order
+
+    # Delete existing 9 items
+    db.query(GalleryItem).filter(
+        GalleryItem.gallery_page_id == gallery.id
+    ).delete(
+        synchronize_session=False
+    )
+
+    # Insert updated 9 items
+    for item in data.items:
+        gallery_item = GalleryItem(
+            gallery_page_id=gallery.id,
+            image_url=item.image_url,
+            caption=item.caption,
+            item_order=item.item_order
+        )
+
+        db.add(gallery_item)
+
+    db.commit()
+    db.refresh(gallery)
+
+    return gallery
+
+@router.delete("/{gallery_id}")
+def delete_gallery(
+    gallery_id: int,
+    db: Session = Depends(get_db)
+):
+    gallery = (
+        db.query(GalleryPage)
+        .filter(GalleryPage.id == gallery_id)
+        .first()
+    )
+
+    if not gallery:
+        raise HTTPException(
+            status_code=404,
+            detail="Gallery not found"
+        )
+
+    db.delete(gallery)
+    db.commit()
+
+    return {
+        "message": "Gallery deleted successfully"
+    }

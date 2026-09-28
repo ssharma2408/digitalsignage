@@ -1,0 +1,392 @@
+/* =========================================================
+   STAFF PAGE - FULL SCREEN DIGITAL SIGNAGE
+   Designed for 1920 x 1080 landscape
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+}
+
+/* Main page */
+.staff-container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden !important;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.staff-container .header {
+    flex: 0 0 65px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 15px;
+    margin: 0;
+}
+
+.staff-container .header h1 {
+    margin: 0;
+    padding: 0;
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* =========================================================
+   TABLE AREA
+   ========================================================= */
+
+.staff-container .sheet {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow: hidden !important;
+    padding: 0 5px 5px 5px;
+}
+
+.staff-container .table-wrap {
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+}
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.staff-container table {
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+    margin: 0;
+    padding: 0;
+
+    /*
+     * Change this value if necessary.
+     * Smaller = more content fits.
+     */
+    font-size: 12px;
+}
+
+/* =========================================================
+   TABLE CELLS
+   ========================================================= */
+
+.staff-container th,
+.staff-container td {
+    border: 1px solid #555;
+
+    /*
+     * Very small padding is important for 1080p signage.
+     */
+    padding: 2px 3px;
+
+    text-align: center;
+    vertical-align: middle;
+
+    line-height: 1.05;
+
+    /*
+     * Allow Gujarati text to wrap instead of increasing width.
+     */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+
+    /*
+     * Prevent content from creating scrollbars.
+     */
+    overflow: hidden;
+}
+
+/* Header cells */
+.staff-container th {
+    background: #e9ecef;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* Body cells */
+.staff-container td {
+    font-size: 11px;
+}
+
+/* =========================================================
+   STAFF IMAGE
+   ========================================================= */
+
+.staff-container .staff-pic {
+    width: 42px;
+    height: 48px;
+
+    object-fit: cover;
+
+    display: block;
+    margin: 0 auto;
+
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* =========================================================
+   COLUMN WIDTHS
+   ========================================================= */
+
+.staff-container th:nth-child(1),
+.staff-container td:nth-child(1) {
+    width: 4%;
+}
+
+.staff-container th:nth-child(2),
+.staff-container td:nth-child(2) {
+    width: 7%;
+}
+
+.staff-container th:nth-child(3),
+.staff-container td:nth-child(3) {
+    width: 7%;
+}
+
+.staff-container th:nth-child(4),
+.staff-container td:nth-child(4) {
+    width: 9%;
+}
+
+.staff-container th:nth-child(5),
+.staff-container td:nth-child(5) {
+    width: 11%;
+}
+
+.staff-container th:nth-child(6),
+.staff-container td:nth-child(6) {
+    width: 7%;
+}
+
+.staff-container th:nth-child(7),
+.staff-container td:nth-child(7) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(8),
+.staff-container td:nth-child(8) {
+    width: 4%;
+}
+
+.staff-container th:nth-child(9),
+.staff-container td:nth-child(9) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(10),
+.staff-container td:nth-child(10) {
+    width: 7%;
+}
+
+.staff-container th:nth-child(11),
+.staff-container td:nth-child(11) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(12),
+.staff-container td:nth-child(12) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(13),
+.staff-container td:nth-child(13) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(14),
+.staff-container td:nth-child(14) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(15),
+.staff-container td:nth-child(15) {
+    width: 6%;
+}
+
+.staff-container th:nth-child(16),
+.staff-container td:nth-child(16) {
+    width: 5%;
+}
+
+/* =========================================================
+   1920 x 1080 OPTIMIZATION
+   ========================================================= */
+
+@media screen and (min-width: 1800px) and (min-height: 900px) {
+
+    .staff-container .header {
+        flex-basis: 60px;
+    }
+
+    .staff-container .header h1 {
+        font-size: 30px;
+    }
+
+    .staff-container table {
+        font-size: 12px;
+    }
+
+    .staff-container th {
+        font-size: 12px;
+    }
+
+    .staff-container td {
+        font-size: 11px;
+    }
+
+    .staff-container th,
+    .staff-container td {
+        padding: 2px 3px;
+    }
+
+    .staff-container .staff-pic {
+        width: 45px;
+        height: 50px;
+    }
+}
+
+/* =========================================================
+   1366 x 768
+   ========================================================= */
+
+@media screen and (max-width: 1600px) and (max-height: 850px) {
+
+    .staff-container .header {
+        flex-basis: 50px;
+    }
+
+    .staff-container .header h1 {
+        font-size: 23px;
+    }
+
+    .staff-container table {
+        font-size: 9px;
+    }
+
+    .staff-container th {
+        font-size: 9px;
+    }
+
+    .staff-container td {
+        font-size: 8px;
+    }
+
+    .staff-container th,
+    .staff-container td {
+        padding: 1px 2px;
+        line-height: 1;
+    }
+
+    .staff-container .staff-pic {
+        width: auto;
+        height: 49px;
+    }
+}
+
+/* =========================================================
+   SMALLER SCREENS
+   ========================================================= */
+
+@media screen and (max-width: 1200px) {
+
+    .staff-container .header {
+        flex-basis: 45px;
+    }
+
+    .staff-container .header h1 {
+        font-size: 20px;
+    }
+
+    .staff-container table {
+        font-size: 8px;
+    }
+
+    .staff-container th {
+        font-size: 8px;
+    }
+
+    .staff-container td {
+        font-size: 7px;
+    }
+
+    .staff-container th,
+    .staff-container td {
+        padding: 1px;
+        line-height: 1;
+    }
+
+    .staff-container .staff-pic {
+        width: 28px;
+        height: 32px;
+    }
+}
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 240px;
+    min-height: 100vh;
+    background: #1e293b;
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.sidebar-logo {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.admin-sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.admin-sidebar a {
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 6px;
+}
+
+.admin-sidebar a:hover,
+.admin-sidebar a.active {
+    background: #334155;
+    color: white;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 30px;
+    background: #f8fafc;
+}

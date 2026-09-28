@@ -1,0 +1,112 @@
+.public-gallery-page {
+    width: 100vw;
+    height: 100vh;
+
+    overflow: hidden;
+
+    box-sizing: border-box;
+
+    padding: 25px 40px;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #fff;
+}
+
+.public-gallery-header {
+    flex: 0 0 auto;
+
+    text-align: center;
+
+    margin-bottom: 20px;
+}
+
+.public-gallery-header h1 {
+    margin: 0;
+
+    font-size: 34px;
+    font-weight: 700;
+}
+
+/* 3 x 3 GRID */
+
+.public-gallery-grid {
+    flex: 1;
+
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    grid-template-rows:
+        repeat(3, 1fr);
+
+    gap: 18px;
+}
+
+.public-gallery-item {
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    text-align: center;
+}
+
+.public-gallery-image {
+    flex: 1;
+
+    min-height: 0;
+
+    overflow: hidden;
+
+    border-radius: 8px;
+
+    background: #f2f2f2;
+}
+
+.public-gallery-image img {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: cover;
+}
+
+.public-gallery-caption {
+    flex: 0 0 32px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: 500;
+
+    padding: 4px 5px;
+
+    box-sizing: border-box;
+}
+
+.public-gallery-loading,
+.public-gallery-error {
+    width: 100vw;
+    height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-direction: column;
+
+    gap: 15px;
+
+    font-size: 20px;
+}

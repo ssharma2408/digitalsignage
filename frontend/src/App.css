@@ -1,0 +1,132 @@
+:root {
+    --ds-text: #231F20;   /* Neutral 1000 */
+    
+    /* Typography */
+	--ds-font: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --ds-fw-light: 300;
+	--ds-fw-regular: 400;
+	--ds-fw-medium: 500;
+	--ds-fw-semibold: 600;
+
+    --ds-hero: 60px;   /* H1 / 400 */
+	--ds-h2: 50px;     /* section / 500 */
+	--ds-h3: 24px;     /* card / 500, +1px */
+	--ds-lead:18px;   /* 400 */
+	--ds-nav: 18px;    /* 500 */
+	--ds-body: 16px;   /* 300 */
+	--gap-40: 40px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+	
+	font-family: var(--ds-font);
+	font-size: var(--ds-body);
+	font-weight: var(--ds-fw-regular);
+	line-height: 1.6;
+	color: var(--ds-text);
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+	font-family: var(--ds-font);
+	font-weight: var(--ds-fw-medium);
+	line-height: 1.2;
+	color: var(--ds-text);
+}
+
+.parent-container, .staff-container {
+  display: grid;
+  place-items: center;
+  /*height: 85vh;*/
+
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.school-heading{
+    font-size: var(--ds-hero);;
+}
+.container{
+	display:flex;
+	column-gap: 50px; 
+}
+.home-logo{
+    width:300px;
+}
+
+.header {
+    margin-bottom: 28px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    color: #123b6d;
+}
+.header p {
+    margin: 0;
+    color: #64748b;
+}
+.sheet {
+    background: #fff;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+.sheet h2 {
+    margin: 0;
+    padding: 18px 22px;
+    background: #123b6d;
+    color: #fff;
+    font-size: 20px;
+}
+.table-wrap {
+    overflow-x: auto;
+	align-items: center;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+th, td {
+    padding: 13px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: #eaf1f8;
+    color: #123b6d;
+    font-weight: 700;
+    /*white-space: nowrap;*/
+}
+
+tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+tbody tr:hover {
+    background: #eef6ff;
+}
+.staff-pic{
+	width: 100px;
+    height: 125px;
+}
