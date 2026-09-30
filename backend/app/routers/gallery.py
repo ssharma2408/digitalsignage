@@ -54,10 +54,11 @@ def create_gallery(
     data: GalleryPageCreate,
     db: Session = Depends(get_db)
 ):
-    if len(data.items) != 9:
+    # Gallery must contain 1 to 9 items
+    if not 1 <= len(data.items) <= 9:
         raise HTTPException(
             status_code=400,
-            detail="Gallery must contain exactly 9 items"
+            detail="Gallery must contain between 1 and 9 items"
         )
 
     existing = (
@@ -76,18 +77,19 @@ def create_gallery(
         title=data.title,
         slug=data.slug,
         status=data.status,
-        page_order=data.page_order
+        page_order=data.page_order,
+        show_title=data.show_title
     )
 
     db.add(gallery)
     db.flush()
 
-    for item in data.items:
+    for index, item in enumerate(data.items):
         gallery_item = GalleryItem(
             gallery_page_id=gallery.id,
             image_url=item.image_url,
             caption=item.caption,
-            item_order=item.item_order
+            item_order=item.item_order if item.item_order is not None else index
         )
 
         db.add(gallery_item)
@@ -96,6 +98,7 @@ def create_gallery(
     db.refresh(gallery)
 
     return gallery
+
 
 @router.put(
     "/{gallery_id}",
@@ -118,31 +121,33 @@ def update_gallery(
             detail="Gallery not found"
         )
 
-    if len(data.items) != 9:
+    # Gallery must contain 1 to 9 items
+    if not 1 <= len(data.items) <= 9:
         raise HTTPException(
             status_code=400,
-            detail="Gallery must contain exactly 9 items"
+            detail="Gallery must contain between 1 and 9 items"
         )
 
     gallery.title = data.title
     gallery.slug = data.slug
     gallery.status = data.status
     gallery.page_order = data.page_order
+    gallery.show_title = data.show_title
 
-    # Delete existing 9 items
+    # Delete existing items
     db.query(GalleryItem).filter(
         GalleryItem.gallery_page_id == gallery.id
     ).delete(
         synchronize_session=False
     )
 
-    # Insert updated 9 items
-    for item in data.items:
+    # Insert updated items
+    for index, item in enumerate(data.items):
         gallery_item = GalleryItem(
             gallery_page_id=gallery.id,
             image_url=item.image_url,
             caption=item.caption,
-            item_order=item.item_order
+            item_order=item.item_order if item.item_order is not None else index
         )
 
         db.add(gallery_item)

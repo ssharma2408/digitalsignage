@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, BigInteger, String, Text, DateTime, Integer, ForeignKey
+from sqlalchemy import Column, BigInteger, String, Text, DateTime, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -139,6 +139,8 @@ class GalleryPage(Base):
         default=0,
         nullable=False
     )
+
+    show_title = Column(Boolean, nullable=False, default=True)
 
     created_at = Column(
         DateTime(timezone=True),

@@ -3,6 +3,9 @@ import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
+from ..supabase_storage import upload_file, get_public_url
+
+SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET")
 
 router = APIRouter(
     prefix="/admin/media",
@@ -51,9 +54,6 @@ async def upload_image(
             detail="No image file received. Expected 'file' or 'files[]'."
         )
 
-    # Make sure upload directory exists
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-
     response_data = []
 
     for uploaded_file in upload_files:
@@ -76,26 +76,27 @@ async def upload_image(
         # Generate unique filename
         filename = f"{uuid.uuid4().hex}{extension}"
 
-        filepath = os.path.join(
-            UPLOAD_DIR,
-            filename
-        )
+        filepath = f"{UPLOAD_DIR}/{filename}"
 
         # Read file
         contents = await uploaded_file.read()
 
-        # Save file
-        with open(filepath, "wb") as buffer:
-            buffer.write(contents)
+        # Upload to Supabase
+        upload_file(
+            file_bytes=contents,
+            file_path=filepath,
+            content_type=uploaded_file.content_type or "application/octet-stream",
+            bucket_name=SUPABASE_STORAGE_BUCKET,
+        )
 
-        # Public URL
-        image_url = (
-            f"http://127.0.0.1:8000/"
-            f"uploads/images/{filename}"
+        # Get public URL
+        public_url = get_public_url(
+            file_path=filepath,
+            bucket_name=SUPABASE_STORAGE_BUCKET,
         )
 
         response_data.append({
-            "src": image_url,
+            "src": public_url,
             "name": filename,
             "type": "image"
         })

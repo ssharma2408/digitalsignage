@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from app.routers import public
 
 from .routers import auth, users, welcome, media, staff, gallery
@@ -30,11 +29,6 @@ app.include_router(public.router)
 app.include_router(staff.router)
 app.include_router(gallery.router)
 
-app.mount(
-    "/uploads",
-    StaticFiles(directory="uploads"),
-    name="uploads"
-)
 
 @app.get("/")
 def root():

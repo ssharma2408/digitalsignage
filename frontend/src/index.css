@@ -285,15 +285,15 @@ body,
     }
 
     .staff-container table {
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .staff-container th {
-        font-size: 9px;
+        font-size: 12px;
     }
 
     .staff-container td {
-        font-size: 8px;
+        font-size: 15px;
     }
 
     .staff-container th,
@@ -304,7 +304,7 @@ body,
 
     .staff-container .staff-pic {
         width: auto;
-        height: 49px;
+        height: 85px;
     }
 }
 

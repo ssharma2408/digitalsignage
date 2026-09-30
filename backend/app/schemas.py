@@ -120,18 +120,19 @@ class GalleryPageBase(BaseModel):
     slug: str
     status: str = "published"
     page_order: int = 0
+    show_title: bool = True
 
 class GalleryPageCreate(GalleryPageBase):
     items: List[GalleryItemCreate] = Field(
         ...,
-        min_length=9,
+        min_length=1,
         max_length=9
     )
 
 class GalleryPageUpdate(GalleryPageBase):
     items: List[GalleryItemCreate] = Field(
         ...,
-        min_length=9,
+        min_length=1,
         max_length=9
     )
 

@@ -78,13 +78,15 @@ export default function Gallery() {
     return (
         <div className="public-gallery-page">
 
-            <header className="public-gallery-header">
-                <h1>
-                    {gallery.title}
-                </h1>
-            </header>
+            {gallery.show_title && (
+                <header className="public-gallery-header">
+                    <h1 className="gallery-title">
+                        {gallery.title}
+                    </h1>
+                </header>
+            )}         
 
-            <main className="public-gallery-grid">
+            <main className={`gallery-grid gallery-count-${gallery.items.length}`}>
 
                 {gallery.items
                     ?.sort(
@@ -110,10 +112,11 @@ export default function Gallery() {
                                 />
                             </div>
 
-                            <div className="public-gallery-caption">
-                                {item.caption}
-                            </div>
-
+                            {item.caption?.trim() && (
+                                 <div className="public-gallery-caption">
+                                    {item.caption}
+                                </div>
+                            )}
                         </div>
                     ))}
 

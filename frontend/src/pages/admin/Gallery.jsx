@@ -2,23 +2,18 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { API_URL } from "../../config";
 import "./Gallery.css";
+import ImageCropModal from "../../components/ImageCropModal";
 
 const EMPTY_ITEM = {
     image_url: "",
     caption: "",
-    item_order: 0,
+    item_order: 1,
 };
-
-function createEmptyItems() {
-    return Array.from({ length: 9 }, (_, index) => ({
-        ...EMPTY_ITEM,
-        item_order: index + 1,
-    }));
-}
 
 function getImageUrl(url) {
     if (!url) return "";
 
+    // Existing absolute URLs continue to work
     if (
         url.startsWith("http://") ||
         url.startsWith("https://")
@@ -26,6 +21,7 @@ function getImageUrl(url) {
         return url;
     }
 
+    // New relative URLs
     return `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
@@ -45,12 +41,16 @@ export default function GalleryAdmin() {
 
     const [editingId, setEditingId] = useState(null);
 
+    const [cropImage, setCropImage] = useState(null);
+    const [cropIndex, setCropIndex] = useState(null);
+
     const [form, setForm] = useState({
         title: "",
         slug: "",
         status: "published",
         page_order: 0,
-        items: createEmptyItems(),
+        show_title: true,
+        items: [],
     });
 
     useEffect(() => {
@@ -69,13 +69,20 @@ export default function GalleryAdmin() {
 
             alert(
                 error.response?.data?.detail ||
-                "Failed to load galleries."
+                    "Failed to load galleries."
             );
         } finally {
             setLoading(false);
         }
     }
 
+    /*
+     * Reset the form.
+     *
+     * IMPORTANT:
+     * Start with ZERO images.
+     * Admin adds images using "+ Add Image".
+     */
     function resetForm() {
         setEditingId(null);
 
@@ -84,7 +91,13 @@ export default function GalleryAdmin() {
             slug: "",
             status: "published",
             page_order: 0,
-            items: createEmptyItems(),
+            show_title: true,
+            items: [],
+        });
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
         });
     }
 
@@ -101,9 +114,7 @@ export default function GalleryAdmin() {
     }
 
     function handleFieldChange(event) {
-        const { name, value } = event.target.value !== undefined
-            ? event.target
-            : {};
+        const { name, value } = event.target;
 
         setForm((prev) => ({
             ...prev,
@@ -111,6 +122,60 @@ export default function GalleryAdmin() {
         }));
     }
 
+    function handleShowTitleChange(event) {
+        const checked = event.target.checked;
+
+        setForm((prev) => ({
+            ...prev,
+            show_title: checked,
+        }));
+    }
+
+    /*
+     * Add one new image slot.
+     *
+     * Maximum = 9.
+     */
+    function addImage() {
+        if (form.items.length >= 9) {
+            alert("Maximum 9 images allowed.");
+            return;
+        }
+
+        setForm((prev) => ({
+            ...prev,
+            items: [
+                ...prev.items,
+                {
+                    ...EMPTY_ITEM,
+                    item_order: prev.items.length + 1,
+                },
+            ],
+        }));
+    }
+
+    /*
+     * Remove an image slot completely.
+     */
+    function removeImage(index) {
+        setForm((prev) => {
+            const items = prev.items
+                .filter((_, i) => i !== index)
+                .map((item, i) => ({
+                    ...item,
+                    item_order: i + 1,
+                }));
+
+            return {
+                ...prev,
+                items,
+            };
+        });
+    }
+
+    /*
+     * Update image_url / caption.
+     */
     function updateItem(index, field, value) {
         setForm((prev) => {
             const items = [...prev.items];
@@ -127,24 +192,49 @@ export default function GalleryAdmin() {
         });
     }
 
-    async function uploadImage(index, file) {
-        if (!file) return;
+    /*
+     * Upload image.
+     *
+     * Current backend response expected:
+     * response.data.data[0].src
+     */
+    const handleImageSelect = (event, index) => {
+        const file = event.target.files?.[0];
 
-        const allowedTypes = [
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/gif",
-        ];
+        if (!file) {
+            return;
+        }
 
-        if (!allowedTypes.includes(file.type)) {
-            alert(
-                "Please select a JPG, PNG, WEBP or GIF image."
-            );
+        // Basic validation
+        if (!file.type.startsWith("image/")) {
+            alert("Please select an image file.");
+            return;
+        }
+
+        // Create temporary browser URL
+        const imageUrl = URL.createObjectURL(file);
+
+        setCropImage(imageUrl);
+        setCropIndex(index);
+
+        // Allow selecting the same image again
+        event.target.value = "";
+    };
+
+    const handleCropComplete = async (croppedBlob) => {
+        if (cropIndex === null) {
             return;
         }
 
         try {
+            const file = new File(
+                [croppedBlob],
+                `gallery-${Date.now()}.jpg`,
+                {
+                    type: "image/jpeg",
+                }
+            );
+
             const formData = new FormData();
 
             formData.append("file", file);
@@ -163,37 +253,38 @@ export default function GalleryAdmin() {
                 response.data?.data?.[0]?.src;
 
             if (!uploadedUrl) {
-                console.error(
-                    "Unexpected upload response:",
-                    response.data
+                throw new Error(
+                    "Upload response did not contain image URL."
                 );
-
-                alert("Image upload failed.");
-                return;
             }
 
             updateItem(
-                index,
+                cropIndex,
                 "image_url",
                 uploadedUrl
             );
+
+            // Close crop modal
+            setCropImage(null);
+            setCropIndex(null);
+
         } catch (error) {
             console.error(
-                "Image upload error:",
+                "Cropped image upload failed:",
                 error
             );
 
-            alert(
-                error.response?.data?.detail ||
-                "Image upload failed."
-            );
+            alert("Image upload failed.");
         }
-    }
+    };
 
-    function removeImage(index) {
-        updateItem(index, "image_url", "");
-    }
-
+    /*
+     * Edit existing gallery.
+     *
+     * IMPORTANT:
+     * Do NOT create 9 empty slots.
+     * Load only the images that actually exist.
+     */
     async function editGallery(id) {
         try {
             setLoading(true);
@@ -204,24 +295,19 @@ export default function GalleryAdmin() {
 
             const gallery = response.data;
 
-            const items = Array.from(
-                { length: 9 },
-                (_, index) => {
-                    const existingItem =
-                        gallery.items?.find(
-                            (item) =>
-                                item.item_order ===
-                                index + 1
-                        );
-
-                    return (
-                        existingItem || {
-                            ...EMPTY_ITEM,
-                            item_order: index + 1,
-                        }
-                    );
-                }
-            );
+            const items = (gallery.items || [])
+                .slice(0, 9)
+                .sort(
+                    (a, b) =>
+                        (a.item_order || 0) -
+                        (b.item_order || 0)
+                )
+                .map((item, index) => ({
+                    image_url: item.image_url || "",
+                    caption: item.caption || "",
+                    item_order:
+                        index + 1,
+                }));
 
             setForm({
                 title: gallery.title || "",
@@ -229,7 +315,15 @@ export default function GalleryAdmin() {
                 status:
                     gallery.status || "published",
                 page_order:
-                    gallery.page_order || 0,
+                    gallery.page_order ?? 0,
+
+                /*
+                 * Existing galleries created before
+                 * show_title was added remain visible.
+                 */
+                show_title:
+                    gallery.show_title ?? true,
+
                 items,
             });
 
@@ -247,13 +341,16 @@ export default function GalleryAdmin() {
 
             alert(
                 error.response?.data?.detail ||
-                "Failed to load gallery."
+                    "Failed to load gallery."
             );
         } finally {
             setLoading(false);
         }
     }
 
+    /*
+     * Save / Update gallery.
+     */
     async function saveGallery(event) {
         event.preventDefault();
 
@@ -267,13 +364,36 @@ export default function GalleryAdmin() {
             return;
         }
 
+        /*
+         * Gallery must contain at least 1 image.
+         */
+        if (form.items.length < 1) {
+            alert(
+                "Please add at least 1 image to the gallery."
+            );
+            return;
+        }
+
+        /*
+         * Maximum 9.
+         */
+        if (form.items.length > 9) {
+            alert(
+                "Maximum 9 images are allowed."
+            );
+            return;
+        }
+
+        /*
+         * Make sure every added slot has an image.
+         */
         const emptyImage = form.items.find(
             (item) => !item.image_url
         );
 
         if (emptyImage) {
             alert(
-                "Please upload images for all 9 gallery slots."
+                "Please upload an image for every added image slot."
             );
             return;
         }
@@ -283,17 +403,37 @@ export default function GalleryAdmin() {
 
             const payload = {
                 title: form.title.trim(),
+
                 slug: form.slug.trim(),
+
                 status: form.status,
+
                 page_order: Number(
                     form.page_order
                 ),
+
+                /*
+                 * IMPORTANT:
+                 * Send checkbox value to backend.
+                 */
+                show_title: Boolean(
+                    form.show_title
+                ),
+
+                /*
+                 * 1–9 images.
+                 *
+                 * Caption remains optional.
+                 */
                 items: form.items.map(
                     (item, index) => ({
                         image_url:
                             item.image_url,
+
                         caption:
-                            item.caption || "",
+                            item.caption?.trim() ||
+                            null,
+
                         item_order:
                             index + 1,
                     })
@@ -321,6 +461,7 @@ export default function GalleryAdmin() {
             }
 
             resetForm();
+
             await loadGalleries();
         } catch (error) {
             console.error(
@@ -328,9 +469,14 @@ export default function GalleryAdmin() {
                 error
             );
 
+            console.error(
+                "Backend response:",
+                error.response?.data
+            );
+
             alert(
                 error.response?.data?.detail ||
-                "Failed to save gallery."
+                    "Failed to save gallery."
             );
         } finally {
             setSaving(false);
@@ -368,7 +514,7 @@ export default function GalleryAdmin() {
 
             alert(
                 error.response?.data?.detail ||
-                "Failed to delete gallery."
+                    "Failed to delete gallery."
             );
         }
     }
@@ -376,9 +522,12 @@ export default function GalleryAdmin() {
     return (
         <div className="gallery-admin">
 
-            {/* HEADER */}
+            {/* =========================
+                HEADER
+            ========================== */}
 
             <div className="gallery-admin-header">
+
                 <div>
                     <h1>
                         {editingId
@@ -387,8 +536,8 @@ export default function GalleryAdmin() {
                     </h1>
 
                     <p>
-                        Each gallery contains exactly
-                        9 images in a 3 × 3 layout.
+                        Add 1 to 9 images to each
+                        gallery.
                     </p>
                 </div>
 
@@ -401,9 +550,12 @@ export default function GalleryAdmin() {
                         + New Gallery
                     </button>
                 )}
+
             </div>
 
-            {/* FORM */}
+            {/* =========================
+                FORM
+            ========================== */}
 
             <form
                 className="gallery-form"
@@ -412,7 +564,10 @@ export default function GalleryAdmin() {
 
                 <div className="gallery-form-fields">
 
+                    {/* Gallery Title */}
+
                     <div className="gallery-field">
+
                         <label>
                             Gallery Title
                         </label>
@@ -423,11 +578,38 @@ export default function GalleryAdmin() {
                             onChange={
                                 handleTitleChange
                             }
-                            placeholder="Annual Function"
+                            placeholder="Annual Function 2026"
                         />
+
                     </div>
 
+                    {/* Show Title Checkbox */}
+
+                    <label className="gallery-checkbox">
+
+                        <input
+                            type="checkbox"
+                            checked={
+                                Boolean(
+                                    form.show_title
+                                )
+                            }
+                            onChange={
+                                handleShowTitleChange
+                            }
+                        />
+
+                        <span>
+                            Show Gallery Title on
+                            Public Page
+                        </span>
+
+                    </label>
+
+                    {/* Slug */}
+
                     <div className="gallery-field">
+
                         <label>
                             Slug
                         </label>
@@ -439,11 +621,15 @@ export default function GalleryAdmin() {
                             onChange={
                                 handleFieldChange
                             }
-                            placeholder="annual-function"
+                            placeholder="annual-function-2026"
                         />
+
                     </div>
 
+                    {/* Status */}
+
                     <div className="gallery-field">
+
                         <label>
                             Status
                         </label>
@@ -463,9 +649,13 @@ export default function GalleryAdmin() {
                                 Draft
                             </option>
                         </select>
+
                     </div>
 
+                    {/* Display Order */}
+
                     <div className="gallery-field">
+
                         <label>
                             Display Order
                         </label>
@@ -481,123 +671,216 @@ export default function GalleryAdmin() {
                             }
                             min="0"
                         />
+
                     </div>
 
                 </div>
 
-                {/* 3 x 3 GRID */}
+                {/* =========================
+                    IMAGE SECTION HEADER
+                ========================== */}
 
-                <div className="gallery-editor-grid">
+                <div className="gallery-images-header">
 
-                    {form.items.map(
-                        (item, index) => (
-                            <div
-                                className="gallery-editor-card"
-                                key={index}
-                            >
+                    <div>
+                        <h2>
+                            Gallery Images
+                        </h2>
 
-                                <div className="gallery-slot-number">
-                                    {index + 1}
-                                </div>
+                        <p>
+                            {form.items.length}
+                            {" "}of 9 images added
+                        </p>
+                    </div>
 
-                                {item.image_url ? (
-                                    <div className="gallery-image-preview">
-
-                                        <img
-                                            src={getImageUrl(
-                                                item.image_url
-                                            )}
-                                            alt={
-                                                item.caption ||
-                                                `Gallery ${
-                                                    index + 1
-                                                }`
-                                            }
-                                        />
-
-                                        <button
-                                            type="button"
-                                            className="gallery-remove-image"
-                                            onClick={() =>
-                                                removeImage(
-                                                    index
-                                                )
-                                            }
-                                        >
-                                            Remove
-                                        </button>
-
-                                    </div>
-                                ) : (
-                                    <label className="gallery-upload-box">
-
-                                        <span className="gallery-upload-icon">
-                                            +
-                                        </span>
-
-                                        <span>
-                                            Upload Image
-                                        </span>
-
-                                        <input
-                                            type="file"
-                                            accept="image/jpeg,image/png,image/webp,image/gif"
-                                            onChange={(
-                                                event
-                                            ) =>
-                                                uploadImage(
-                                                    index,
-                                                    event
-                                                        .target
-                                                        .files?.[0]
-                                                )
-                                            }
-                                        />
-
-                                    </label>
-                                )}
-
-                                <div className="gallery-caption-field">
-
-                                    <label>
-                                        Caption
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        value={
-                                            item.caption
-                                        }
-                                        onChange={(
-                                            event
-                                        ) =>
-                                            updateItem(
-                                                index,
-                                                "caption",
-                                                event
-                                                    .target
-                                                    .value
-                                            )
-                                        }
-                                        placeholder="Enter image caption"
-                                    />
-
-                                </div>
-
-                            </div>
-                        )
-                    )}
+                    <button
+                        type="button"
+                        className="gallery-btn primary"
+                        onClick={addImage}
+                        disabled={
+                            form.items.length >=
+                            9
+                        }
+                    >
+                        + Add Image
+                    </button>
 
                 </div>
 
-                {/* SAVE */}
+                {/* =========================
+                    IMAGE GRID
+                ========================== */}
+
+                {form.items.length === 0 ? (
+
+                    <div className="gallery-empty-editor">
+
+                        <div className="gallery-upload-icon">
+                            +
+                        </div>
+
+                        <p>
+                            No images added yet.
+                        </p>
+
+                        <button
+                            type="button"
+                            className="gallery-btn primary"
+                            onClick={addImage}
+                        >
+                            + Add First Image
+                        </button>
+
+                    </div>
+
+                ) : (
+
+                    <div className="gallery-editor-grid">
+
+                        {form.items.map(
+                            (item, index) => (
+
+                                <div
+                                    className="gallery-editor-card"
+                                    key={
+                                        item.id ||
+                                        `new-${index}`
+                                    }
+                                >
+
+                                    {/* Number */}
+
+                                    <div className="gallery-slot-number">
+
+                                        {index + 1}
+
+                                    </div>
+
+                                    {/* Image */}
+
+                                    {item.image_url ? (
+
+                                        <div className="gallery-image-preview">
+
+                                            <img
+                                                src={getImageUrl(
+                                                    item.image_url
+                                                )}
+                                                alt={
+                                                    item.caption ||
+                                                    `Gallery image ${
+                                                        index +
+                                                        1
+                                                    }`
+                                                }
+                                            />
+
+                                            <button
+                                                type="button"
+                                                className="gallery-remove-image"
+                                                onClick={() =>
+                                                    removeImage(
+                                                        index
+                                                    )
+                                                }
+                                            >
+                                                Remove Image
+                                            </button>
+
+                                        </div>
+
+                                    ) : (
+
+                                        <label className="gallery-upload-box">
+
+                                            <span className="gallery-upload-icon">
+                                                +
+                                            </span>
+
+                                            <span>
+                                                Upload Image
+                                            </span>
+
+                                            <input
+                                                type="file"
+                                                accept="image/jpeg,image/png,image/webp,image/gif"
+                                                onChange={(event) => handleImageSelect(event, index)}
+                                            />
+
+                                        </label>
+
+                                    )}
+
+                                    {/* Caption */}
+
+                                    <div className="gallery-caption-field">
+
+                                        <label>
+                                            Caption
+                                            <span>
+                                                {" "}
+                                                (Optional)
+                                            </span>
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            value={
+                                                item.caption ||
+                                                ""
+                                            }
+                                            onChange={(
+                                                event
+                                            ) =>
+                                                updateItem(
+                                                    index,
+                                                    "caption",
+                                                    event
+                                                        .target
+                                                        .value
+                                                )
+                                            }
+                                            placeholder="Enter image caption (optional)"
+                                        />
+
+                                    </div>
+
+                                    {/* Remove Slot */}
+
+                                    <button
+                                        type="button"
+                                        className="gallery-btn delete"
+                                        onClick={() =>
+                                            removeImage(
+                                                index
+                                            )
+                                        }
+                                    >
+                                        Remove Image Slot
+                                    </button>
+
+                                </div>
+
+                            )
+                        )}
+
+                    </div>
+
+                )}
+
+                {/* =========================
+                    SAVE BUTTONS
+                ========================== */}
 
                 <div className="gallery-form-actions">
 
                     <button
                         type="submit"
                         className="gallery-btn primary"
-                        disabled={saving}
+                        disabled={
+                            saving ||
+                            form.items.length === 0
+                        }
                     >
                         {saving
                             ? "Saving..."
@@ -620,29 +903,40 @@ export default function GalleryAdmin() {
 
             </form>
 
-            {/* EXISTING GALLERIES */}
+            {/* =========================
+                EXISTING GALLERIES
+            ========================== */}
 
             <div className="gallery-list-section">
 
                 <div className="gallery-list-header">
+
                     <h2>
                         Existing Galleries
                     </h2>
+
                 </div>
 
                 {loading ? (
+
                     <p>Loading...</p>
+
                 ) : galleries.length === 0 ? (
+
                     <div className="gallery-empty">
                         No galleries found.
                     </div>
+
                 ) : (
+
                     <div className="gallery-table-wrapper">
 
                         <table className="gallery-table">
 
                             <thead>
+
                                 <tr>
+
                                     <th>
                                         Order
                                     </th>
@@ -656,6 +950,10 @@ export default function GalleryAdmin() {
                                     </th>
 
                                     <th>
+                                        Public Title
+                                    </th>
+
+                                    <th>
                                         Status
                                     </th>
 
@@ -666,13 +964,16 @@ export default function GalleryAdmin() {
                                     <th>
                                         Actions
                                     </th>
+
                                 </tr>
+
                             </thead>
 
                             <tbody>
 
                                 {galleries.map(
                                     (gallery) => (
+
                                         <tr
                                             key={
                                                 gallery.id
@@ -686,11 +987,13 @@ export default function GalleryAdmin() {
                                             </td>
 
                                             <td>
+
                                                 <strong>
                                                     {
                                                         gallery.title
                                                     }
                                                 </strong>
+
                                             </td>
 
                                             <td>
@@ -700,6 +1003,16 @@ export default function GalleryAdmin() {
                                             </td>
 
                                             <td>
+
+                                                {gallery.show_title ??
+                                                true
+                                                    ? "Yes"
+                                                    : "No"}
+
+                                            </td>
+
+                                            <td>
+
                                                 <span
                                                     className={`gallery-status ${
                                                         gallery.status
@@ -709,16 +1022,18 @@ export default function GalleryAdmin() {
                                                         gallery.status
                                                     }
                                                 </span>
+
                                             </td>
 
                                             <td>
+
                                                 {
                                                     gallery
                                                         .items
                                                         ?.length ||
                                                     0
-                                                }{" "}
-                                                / 9
+                                                }
+
                                             </td>
 
                                             <td>
@@ -754,6 +1069,7 @@ export default function GalleryAdmin() {
                                             </td>
 
                                         </tr>
+
                                     )
                                 )}
 
@@ -762,10 +1078,22 @@ export default function GalleryAdmin() {
                         </table>
 
                     </div>
+
                 )}
 
             </div>
-
+            {cropImage && (
+                <ImageCropModal
+                    image={cropImage}
+                    aspect={16 / 9}
+                    onCancel={() => {
+                        URL.revokeObjectURL(cropImage);
+                        setCropImage(null);
+                        setCropIndex(null);
+                    }}
+                    onComplete={handleCropComplete}
+                />
+            )}
         </div>
     );
 }
