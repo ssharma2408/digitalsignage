@@ -6,6 +6,7 @@ from ..models import Page
 from ..models import Staff
 from ..models import GalleryPage
 from ..schemas import GalleryPageResponse
+from ..cache import cache
 
 
 router = APIRouter(
@@ -14,10 +15,18 @@ router = APIRouter(
 )
 
 
+
 @router.get("/welcome")
 def get_public_welcome(
     db: Session = Depends(get_db)
 ):
+    # Change the key to avoid using the old cached Page object.
+    cache_key = "public_welcome_v2"
+
+    cached_welcome = cache.get(cache_key)
+
+    if cached_welcome is not None:
+        return cached_welcome
 
     page = (
         db.query(Page)
@@ -34,16 +43,33 @@ def get_public_welcome(
             detail="Welcome page not found"
         )
 
-    return {
+    # Cache the API response, not the SQLAlchemy model.
+    response = {
         "title": page.title,
         "html": page.content,
         "css": page.css
     }
 
+    cache.set(
+        cache_key,
+        response,
+        ttl=7200
+    )
+
+    return response
+
+
 @router.get("/staff")
 def get_public_staff(
     db: Session = Depends(get_db)
 ):
+
+    cache_key = "public_staff"
+    cached_staff = cache.get(cache_key)
+
+    if cached_staff is not None:
+        return cached_staff
+    
     staff_members = (
         db.query(Staff)
         .filter(Staff.status == "published")
@@ -58,9 +84,9 @@ def get_public_staff(
         raise HTTPException(
             status_code=404,
             detail="staff not found"
-        )
+        )   
 
-    return [
+    response =  [
         {
             "id": staff.id,
             "photo_url": staff.photo_url,
@@ -83,6 +109,52 @@ def get_public_staff(
         for staff in staff_members
     ]
 
+    cache.set(
+        cache_key,
+        response,
+        ttl=7200
+    )
+
+    return response
+
+
+
+@router.get(
+    "/gallery",
+    response_model=list[GalleryPageResponse]
+)
+def get_galleries(db: Session = Depends(get_db)):
+
+    cache_key = "public_gallery_v2"
+    cached_gallery = cache.get(cache_key)
+
+    if cached_gallery is not None:
+        return cached_gallery
+
+    galleries = (
+        db.query(GalleryPage)
+        .filter(GalleryPage.status == "published")
+        .order_by(GalleryPage.title.asc())
+        .all()
+    )
+
+    # Convert SQLAlchemy objects, including nested items,
+    # into JSON-compatible dictionaries.
+    response = [
+        GalleryPageResponse.model_validate(gallery).model_dump(mode="json")
+        for gallery in galleries
+    ]
+
+    cache.set(
+        cache_key,
+        response,
+        ttl=7200
+    )
+
+    return response
+
+
+
 @router.get(
     "/{slug}",
     response_model=GalleryPageResponse
@@ -91,6 +163,14 @@ def get_public_gallery(
     slug: str,
     db: Session = Depends(get_db)
 ):
+
+    cache_key = f"public_gallery_{slug}"
+
+    cached_gallery = cache.get(cache_key)
+
+    if cached_gallery is not None:
+        return cached_gallery
+    
     gallery = (
         db.query(GalleryPage)
         .filter(
@@ -106,5 +186,22 @@ def get_public_gallery(
             detail="Gallery not found"
         )
 
-    return gallery
-    
+    response = {
+            "id": gallery.id,
+            "items": gallery.items,
+            "page_order": gallery.page_order,
+            "show_title": gallery.show_title,        
+            "title": gallery.title,
+            "slug": gallery.slug,
+            "status": gallery.status, 
+            "created_at": gallery.created_at,
+            "updated_at": gallery.updated_at,
+        }
+
+    cache.set(
+        cache_key,
+        response,
+        ttl=300
+    )
+
+    return response

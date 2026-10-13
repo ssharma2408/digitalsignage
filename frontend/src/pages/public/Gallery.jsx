@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import api from "../../api/axios";
+import { getCachedApiData } from "../../utils/cachedApi";
 import { API_URL } from "../../config";
 import "./PublicGallery.css";
 
@@ -33,11 +33,13 @@ export default function Gallery() {
             setLoading(true);
             setError("");
 
-            const response = await api.get(
-                `/public/${slug}`
+             const data = await getCachedApiData(
+                `/public/${encodeURIComponent(slug)}`,
+                `public_gallery_${slug}`,
+                120 * 60 * 1000 // 30 minutes
             );
 
-            setGallery(response.data);
+            setGallery(data);
         } catch (error) {
             console.error(
                 "Error loading gallery:",
@@ -88,8 +90,8 @@ export default function Gallery() {
 
             <main className={`gallery-grid gallery-count-${gallery.items.length}`}>
 
-                {gallery.items
-                    ?.sort(
+                {[...(gallery.items || [])]
+                    .sort(
                         (a, b) =>
                             a.item_order -
                             b.item_order

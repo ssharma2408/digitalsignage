@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { API_URL } from "../../config";
+import { getCachedApiData } from "../../utils/cachedApi";
 
 // How long each staff page remains visible.
 // 10000 = 10 seconds.
@@ -55,31 +56,36 @@ export default function Staff() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        loadStaff();
-    }, []);
+        let active = true;
 
-    const loadStaff = async () => {
-        try {
-            setLoading(true);
-            setError("");
+        async function loadStaff() {
+            try {
+                const data = await getCachedApiData(
+                    "/public/staff",
+                    "public_staff",
+                    120 * 60 * 1000
+                );
 
-            const response = await api.get("/public/staff");
-
-            // Keep the order returned by backend.
-            // Backend should already sort using teacher_order.
-            setStaff(Array.isArray(response.data) ? response.data : []);
-
-        } catch (error) {
-            console.error("Failed to load staff:", error);
-
-            setError(
-                error.response?.data?.detail ||
-                "Unable to load staff members."
-            );
-        } finally {
-            setLoading(false);
+                if (active) {
+                    setStaff(data);
+                }
+            } catch (err) {
+                if (active) {
+                    setError("Unable to load staff.");
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
+            }
         }
-    };
+
+        loadStaff();
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     /**
      * Calculate how many staff members should appear

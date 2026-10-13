@@ -1,62 +1,56 @@
 import { useEffect, useState } from "react";
-import api from "../../api/axios";
+import { getCachedApiData } from "../../utils/cachedApi";
 
-function Welcome() {
-
-    const [page, setPage] = useState(null);
+export default function Welcome() {
+    const [welcome, setWelcome] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
+        let active = true;
 
-        const loadWelcome = async () => {
-
+        async function loadWelcome() {
             try {
-
-                const response = await api.get(
-                    "/public/welcome"
+                const data = await getCachedApiData(
+                    "/public/welcome",
+                    "public_welcome",
+                    120 * 60 * 1000 // 30 minutes
                 );
 
-                setPage(response.data);
-
-            } catch (error) {
-
-                console.error(
-                    "Failed to load welcome page:",
-                    error
-                );
-
+                if (active) {
+                    setWelcome(data);
+                }
+            } catch (err) {
+                if (active) {
+                    setError("Unable to load Welcome page.");
+                }
             } finally {
-
-                setLoading(false);
-
+                if (active) {
+                    setLoading(false);
+                }
             }
-        };
+        }
 
         loadWelcome();
 
+        return () => {
+            active = false;
+        };
     }, []);
 
-    if (loading) {
-        return <div>Loading...</div>;
-    }
-
-    if (!page) {
-        return <div>Welcome page not available.</div>;
-    }
+    if (loading) return <p>Loading Welcome page...</p>;
+    if (error) return <p>{error}</p>;
+    if (!welcome) return null;
 
     return (
-        <>
-            <style>
-                {page.css}
-            </style>
+        <div>
+            <style>{welcome.css}</style>
 
             <div
                 dangerouslySetInnerHTML={{
-                    __html: page.html
+                    __html: welcome.html || ""
                 }}
             />
-        </>
+        </div>
     );
 }
-
-export default Welcome;

@@ -7,6 +7,7 @@ import AdminLayout from "./components/AdminLayout";
 import Welcome from "./pages/public/Welcome";
 import Staff from "./pages/public/Staff";
 import Gallery from "./pages/public/Gallery";
+import SignagePlayer from "./pages/public/SignagePlayer";
 
 import Login from "./pages/admin/Login";
 import Register from "./pages/admin/Register";
@@ -23,7 +24,7 @@ export default function App() {
         <BrowserRouter>
 
             <Routes>
-
+                <Route path="/signage-player" element={<SignagePlayer />} />
                 <Route path="/" element={<Welcome />} />
                 <Route path="/welcome" element={<Welcome />} />
                 <Route path="/staff" element={<Staff />} />                
