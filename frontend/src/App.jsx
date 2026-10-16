@@ -8,6 +8,7 @@ import Welcome from "./pages/public/Welcome";
 import Staff from "./pages/public/Staff";
 import Gallery from "./pages/public/Gallery";
 import SignagePlayer from "./pages/public/SignagePlayer";
+import Attendance from "./pages/public/Attendance";
 
 import Login from "./pages/admin/Login";
 import Register from "./pages/admin/Register";
@@ -16,6 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import WelcomeAdmin from "./pages/admin/Welcome";
 import StaffAdmin from "./pages/admin/Staff";
 import GalleryAdmin from "./pages/admin/Gallery";
+import StudentAttendance from "./pages/admin/StudentAttendance";
 //import Media from "./pages/admin/Media";
 
 export default function App() {
@@ -32,7 +34,7 @@ export default function App() {
                     path="/gallery/:slug"
                     element={<Gallery />}
                 />
-
+                <Route path="/attendance" element={<Attendance />} />
                 <Route
                     path="/admin/login"
                     element={<Login />}
@@ -82,6 +84,15 @@ export default function App() {
                         element={
                             <ProtectedRoute>
                                 <GalleryAdmin />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                    path="/admin/attendance"
+                    element={
+                            <ProtectedRoute>
+                                <StudentAttendance />
                             </ProtectedRoute>
                         }
                     />

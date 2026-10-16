@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, BigInteger, String, Text, DateTime, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, BigInteger, String, Text, DateTime, Integer, ForeignKey, Boolean, Date,  UniqueConstraint, CheckConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -200,4 +200,57 @@ class GalleryItem(Base):
     gallery_page = relationship(
         "GalleryPage",
         back_populates="items"
+    )
+
+class StudentAttendance(Base):
+    __tablename__ = "student_attendance"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "standard", "section",
+            name="uq_standard_section"
+        ),
+        CheckConstraint(
+            "registered_boys >= 0 AND registered_girls >= 0 "
+            "AND present_boys >= 0 AND present_girls >= 0 "
+            "AND absent_boys >= 0 AND absent_girls >= 0 "
+            "AND come_boys >= 0 AND come_girls >= 0 "
+            "AND go_boys >= 0 AND go_girls >= 0 "
+            "AND midday_meal_beneficiaries >= 0",
+            name="ck_attendance_nonnegative"
+        ),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    attendance_date = Column(Date, nullable=False, index=True)
+    standard = Column(String(10), nullable=False)
+    section = Column(String(10), nullable=True)
+    standard_group = Column(String(20), nullable=False)
+
+    registered_boys = Column(Integer, nullable=False, default=0)
+    registered_girls = Column(Integer, nullable=False, default=0)
+
+    present_boys = Column(Integer, nullable=False, default=0)
+    present_girls = Column(Integer, nullable=False, default=0)
+
+    absent_boys = Column(Integer, nullable=False, default=0)
+    absent_girls = Column(Integer, nullable=False, default=0)
+
+    come_boys = Column(Integer, nullable=False, default=0)
+    come_girls = Column(Integer, nullable=False, default=0)
+
+    go_boys = Column(Integer, nullable=False, default=0)
+    go_girls = Column(Integer, nullable=False, default=0)
+
+    midday_meal_beneficiaries = Column(
+        Integer, nullable=False, default=0
+    )
+
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(),
+        nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(),
+        onupdate=func.now(), nullable=False
     )

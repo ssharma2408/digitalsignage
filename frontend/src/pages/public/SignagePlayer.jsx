@@ -16,6 +16,11 @@ export default function SignagePlayer() {
             title: "Staff",
             url: "/staff",
         },
+        {
+            id: "attendance",
+            title: "Attendance",
+            url: "/attendance",
+        },
     ]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,6 +58,11 @@ export default function SignagePlayer() {
                             id: "staff",
                             title: "Staff",
                             url: "/staff",
+                        },
+                        {
+                            id: "attendance",
+                            title: "Attendance",
+                            url: "/attendance",
                         },
                         ...galleryPages,
                     ]);

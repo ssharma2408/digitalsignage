@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Page
 from ..models import Staff
 from ..models import GalleryPage
+from ..models import StudentAttendance
 from ..schemas import GalleryPageResponse
 from ..cache import cache
+from datetime import date
 
 
 router = APIRouter(
@@ -53,7 +55,7 @@ def get_public_welcome(
     cache.set(
         cache_key,
         response,
-        ttl=7200
+        ttl=1800
     )
 
     return response
@@ -112,12 +114,86 @@ def get_public_staff(
     cache.set(
         cache_key,
         response,
-        ttl=7200
+        ttl=1800
     )
 
     return response
 
+def serialize(row):
+    data = {
+        column.name: getattr(row, column.name)
+        for column in row.__table__.columns
+    }
+    data["total_strength"] = (
+        row.registered_boys + row.registered_girls
+    )
+    data["total_present"] = row.present_boys + row.present_girls
+    data["total_absent"] = row.absent_boys + row.absent_girls
+    
+    return data
 
+@router.get("/attendance")
+def public_attendance(
+    attendance_date: date = Query(default_factory=date.today),
+    db: Session = Depends(get_db),
+):
+    cache_key = f"public_attendance_{attendance_date.isoformat()}"
+
+    cached_attendance = cache.get(cache_key)
+
+    if cached_attendance is not None:
+        return cached_attendance
+
+    rows = (
+        db.query(StudentAttendance)
+        .filter(
+            StudentAttendance.attendance_date == attendance_date
+        )
+        .order_by(
+            StudentAttendance.id
+        )
+        .all()
+    )
+
+    result = [serialize(row) for row in rows]
+
+    def summarize(group):
+        selected = [
+            row for row in result
+            if row["standard_group"] == group
+        ]
+
+        fields = [
+            "registered_boys", "registered_girls",
+            "present_boys", "present_girls",
+            "absent_boys", "absent_girls",
+            "come_boys", "come_girls",
+            "go_boys", "go_girls",
+            "midday_meal_beneficiaries",
+            "total_strength", "total_present", "total_absent",
+        ]
+
+        return {
+            field: sum(row[field] for row in selected)
+            for field in fields
+        }
+
+    response = {
+        "attendance_date": attendance_date.isoformat(),
+        "groups": {
+            "Primary": summarize("Primary"),
+            "Upper Primary": summarize("Upper Primary"),
+        },
+        "records": result,
+    }
+
+    cache.set(
+        cache_key,
+        response,
+        ttl=1800,
+    )
+
+    return response   
 
 @router.get(
     "/gallery",
@@ -148,7 +224,7 @@ def get_galleries(db: Session = Depends(get_db)):
     cache.set(
         cache_key,
         response,
-        ttl=7200
+        ttl=1800
     )
 
     return response
@@ -201,7 +277,7 @@ def get_public_gallery(
     cache.set(
         cache_key,
         response,
-        ttl=300
+        ttl=1800
     )
 
     return response

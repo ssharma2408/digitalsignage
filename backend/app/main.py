@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import public
 
-from .routers import auth, users, welcome, media, staff, gallery
+from .routers import auth, users, welcome, media, staff, gallery, student_attendance
 
 app = FastAPI(
     title="AI CMS API",
@@ -28,6 +28,7 @@ app.include_router(media.router)
 app.include_router(public.router)
 app.include_router(staff.router)
 app.include_router(gallery.router)
+app.include_router(student_attendance.router)
 
 
 @app.get("/")

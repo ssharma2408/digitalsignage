@@ -35,8 +35,8 @@ function Sidebar() {
                     Galleries
                 </NavLink>
 
-                <NavLink to="/admin/media">
-                    Media
+                <NavLink to="/admin/attendance">
+                    Attendance
                 </NavLink>
             </nav>
              <button onClick={handleLogout}>
